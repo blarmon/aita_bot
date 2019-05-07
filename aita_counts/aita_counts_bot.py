@@ -1,16 +1,8 @@
-import praw
 import re
 from collections import defaultdict
+import config
 
-USERNAME = 'aita_bot'
-PASSWORD = 'J2ET2DDfnDGnJmrd'
-USERAGENT = "This bot created by /u/blarmon_kek"
-
-reddit = praw.Reddit(client_id='9_-k277E1j_HIA',
-                    client_secret = '1u2vbf2sefNW4cI9B2X0aHMtgPE',
-                    user_agent=USERAGENT,
-                    username=USERNAME,
-                    password=PASSWORD,)
+reddit = config.reddit_config
 
 subreddit = reddit.subreddit('AmItheAsshole')
 
@@ -67,6 +59,7 @@ key_phrase = '!aita\_bot'
 
 while True:
     for comment in subreddit.stream.comments(skip_existing=True):
+        print(comment.body)
         if key_phrase in comment.body:
             comment.reply(generate_counts(comment.submission.id))
 
