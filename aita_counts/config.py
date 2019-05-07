@@ -1,7 +1,7 @@
 import praw
 
 USERNAME = 'aita_bot'
-PASSWORD = '-SStp5%$sV`%'
+PASSWORD = '_HG%>6cb(}6jY6@b'
 USERAGENT = "This bot created by /u/blarmon_kek"
 
 reddit_config = praw.Reddit(client_id='9_-k277E1j_HIA',
