@@ -1,23 +1,37 @@
 import re
+import time
 from collections import defaultdict
 import threading
 from queue import Queue
 
 import config
+import logger
+import write_out_data
 
 reddit = config.reddit_config
 subreddit = reddit.subreddit('AmITheAsshole')
 
-# TODO! maybe write successful comments out to a file with some metadata.  could be fun to have the data in json format down the line or something.
 # TODO.  grab the most upvoted comment for each type of vote and link to it.  that's good stuff.
 # TODO clean up variable shadowing
 # TODO error handling
 
-def generate_counts(submission_id):
-    submission = reddit.submission(id=submission_id)
+# TODO ERROR HANDLING ON THE REPLY
+
+# todo!!!  i need to put a lock on my data and logging files!!!!  data will get jumbly otherwise
+
+def generate_counts(comment):
+    submission = reddit.submission(id=comment.submission.id)
     aita_dict = defaultdict(int)
 
-    submission.comments.replace_more(limit=None)
+    try:
+        submission.comments.replace_more(limit=None)
+    except AssertionError as e:
+        logger.log_error(e)
+        time_to_reset = reddit.auth.limits['reset_timestamp'] - time.time()
+        time.sleep(time_to_reset)
+        q.put(comment)
+        return
+
     for comment in submission.comments.list():
         matcher = aita_regex.search(comment.body)
         if matcher:
@@ -44,7 +58,13 @@ def threader():
     while True:
         if not q.empty():
             comment = q.get()
-            comment.reply(generate_counts(comment.submission.id))
+            reply = generate_counts(comment)
+
+            if reply:
+                # TODO TRY EXCEPT HERE!  COULD ALWAYS ENCOUNTER RATE LIMITING ISSUES
+                comment.reply(reply)
+                write_out_data.write_new_comment(time.time(), reply)
+
             q.task_done()
 
 
@@ -56,10 +76,13 @@ if __name__ == '__main__':
 
     for _ in range(5):
         t = threading.Thread(target=threader)
-        t.daemon = False
+        t.daemon = True
         t.start()
 
     while True:
         for comment in subreddit.stream.comments(skip_existing=True):
+            print(reddit.auth.limits)
             if key_phrase in comment.body:
+                print('here')
                 q.put(comment)
+
