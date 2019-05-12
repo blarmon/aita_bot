@@ -11,13 +11,10 @@ import write_out_data
 reddit = config.reddit_config
 subreddit = reddit.subreddit('AmITheAsshole')
 
-# TODO.  grab the most upvoted comment for each type of vote and link to it.  that's good stuff.
+# TODO.  grab the most upvoted comment for each type of vote and link to it.
 # TODO clean up variable shadowing
-# TODO error handling
-
-# TODO ERROR HANDLING ON THE REPLY
-
-# todo!!!  i need to put a lock on my data and logging files!!!!  data will get jumbly otherwise
+# TODO error handling on ALL praw requests
+# TODO format the json files better
 
 def generate_counts(comment):
     submission = reddit.submission(id=comment.submission.id)
@@ -26,7 +23,7 @@ def generate_counts(comment):
     try:
         submission.comments.replace_more(limit=None)
     except AssertionError as e:
-        logger.log_error(e)
+        logger.log_error(time.time(), e, 'replace_more', write_lock)
         time_to_reset = reddit.auth.limits['reset_timestamp'] - time.time()
         time.sleep(time_to_reset)
         q.put(comment)
@@ -61,9 +58,12 @@ def threader():
             reply = generate_counts(comment)
 
             if reply:
-                # TODO TRY EXCEPT HERE!  COULD ALWAYS ENCOUNTER RATE LIMITING ISSUES
-                comment.reply(reply)
-                write_out_data.write_new_comment(time.time(), reply)
+                try:
+                    comment.reply(reply)
+                except AssertionError as e:
+                    logger.log_error(time.time(), e, 'reply', write_lock)
+                else:
+                    write_out_data.write_new_comment(time.time(), reply, comment.author.name, comment.submission.id, write_lock)
 
             q.task_done()
 
@@ -73,6 +73,7 @@ if __name__ == '__main__':
     key_phrase = '!aita\_bot'
     q = Queue()
     aita_regex = re.compile(r'(YTA|NTA|ESH|NAH|INFO)')
+    write_lock = threading.Lock()
 
     for _ in range(5):
         t = threading.Thread(target=threader)
