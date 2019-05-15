@@ -5,6 +5,8 @@ A Reddit bot for the [AmITheAsshole](https://www.reddit.com/r/AmItheAsshole/) su
 The bot constantly runs a loop reading in new comments from the subreddit.  When one is found that contains the phrase 
 '!aita_bot' the bot will reply with counts and %'s of the votes in that thread. (YTA, NTA, ESH, NAH, or INFO).
 
+Unfortunately the mods of AmItheAsshole were not bigs fans of my bot, although the users of the sub seemed to be (got my first gold!), and it has been perma-banned.  It was partially my fault, at least.  I didn't message them beforehand for permission.  I just wasn't aware of the reddit culture around bots, specifically reddit mods.  Lesson learned.  I plan to turn a lot of this code into a reddit data collection and analysis tool.  You can keep track of that project at [aita_data_collector](https://github.com/blarmon/aita_data_collector).  I had a good time with this, and learned a lot regardless.
+
 ## The technical stuff.
 
 The main loop of the bot runs in the main thread.  It reads in every new comment and looks for the '!aita_bot' phrase.
@@ -17,7 +19,9 @@ the comment that called the bot, and the thread goes back to looking for comment
 
 I've chosen to run the the vote gathering and replying methods within their own thread because the operations can be very time consuming
 due to the large number of reddit API calls that have to be made. I wanted to keep the main thread running as often as possible to pick up 
-new comments.  I considered multiprocessing, but the operatons don't seem to put a large strain on the CPU.
+new comments.  I considered multiprocessing, but the operatons don't seem to put a large strain on the CPU as they're mostly calls out to reddit's servers, so the threading library seemed to best fit the bill..
+
+I've added some error handling/logging and also a function to write comments that the bot makes out to a file as JSON, both of which write JSON out to a text file for me to check out later.
 
 The bot runs on a [Raspberry Pi 3 Model B+](https://www.raspberrypi.org/products/raspberry-pi-3-model-b-plus/) running Raspbian.  
 As of now (5/9/2019) I'm still making enough significant changes to the bot that I probably won't leave it running very often.
