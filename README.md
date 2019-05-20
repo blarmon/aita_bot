@@ -1,6 +1,6 @@
 # aita_bot
 
-A Reddit bot for the [AmITheAsshole](https://www.reddit.com/r/AmItheAsshole/) subreddit written using praw and the Python threading library.
+A Reddit bot for the [AmITheA**hole](https://www.reddit.com/r/AmItheAsshole/) subreddit written using praw and the Python threading library.
 
 The bot constantly runs a loop reading in new comments from the subreddit.  When one is found that contains the phrase 
 '!aita_bot' the bot will reply with counts and %'s of the votes in that thread. (YTA, NTA, ESH, NAH, or INFO).
